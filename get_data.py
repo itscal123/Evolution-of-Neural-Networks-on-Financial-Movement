@@ -1,173 +1,254 @@
 import requests
 import pandas as pd
 import time
-
+import functools
+import numpy as np
 
 #    Note that the apikey parameter in the url string should be replaced with your own api key which can be obtained for free
 #    at https://www.alphavantage.co/support/
 
-# Cryptocurrencies
-def get_exchange_rates(apikey, symbol="BTC"):
+# Time Series Data
+def time_series_daily(apikey, symbol):
     """
-    Downloads daily historical time series for Bitcoin (BTC) traded in the USD market, refreshed daily at midnight (UTC).
+    Gets the the daily historical data for given symbol
     params: apikey (str), symbol (str)
-    returns: dataframe
+    returns: None
     """
-    url = 'https://www.alphavantage.co/query?function=DIGITAL_CURRENCY_DAILY&symbol={}&market=USD&apikey={}'.format(symbol, apikey)
-    r = requests.get(url)
-    data = r.json()
+    url = 'https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol={}&outputsize=full&datatype=csv&apikey={}'.format(symbol, apikey)
+    req = requests.get(url)
+    content = req.content
+    f = open('data\daily_{}.csv'.format(symbol), 'wb')
+    f.write(content)
+    f.close()
+    return
 
-    df = pd.DataFrame.from_dict(data["Time Series (Digital Currency Daily)"], orient="index").sort_index(axis=1)
-    df = df.rename(columns={ '1a. open (USD)': 'Open (USD)', '2a. high (USD)': 'High (USD)', '3a. low (USD)': 'Low (USD)', '4a. close (USD)': 'Close (USD)', '5. volume': 'Volume', '6. market cap (USD)': 'Market Cap (USD)'})
-    df = df[['Open (USD)', 'High (USD)', 'Low (USD)', 'Close (USD)', 'Volume', 'Market Cap (USD)']]
-    df.to_csv("prices.csv")
-    return df
+def time_series_weekly(apikey, symbol):
+    """
+    Gets the weekly adjusted historical data for given symbol
+    params: apikey (str), symbol (str)
+    returns: None
+    """
+    url = 'https://www.alphavantage.co/query?function=TIME_SERIES_WEEKLY_ADJUSTED&symbol={}&datatype=csv&apikey={}'.format(symbol, apikey)
+    req = requests.get(url)
+    content = req.content
+    f = open('data\weekly_{}.csv'.format(symbol), 'wb')
+    f.write(content)
+    f.close()
+    return
+
+def time_series_monthly(apikey, symbol):
+    """
+    Gets the monthly adjusted historical data for given symbol
+    params: apikey (str), symbol (str)
+    returns: None
+    """
+    url = 'https://www.alphavantage.co/query?function=TIME_SERIES_MONTHLY_ADJUSTED&symbol={}&datatype=csv&apikey={}'.format(symbol, apikey)
+    req = requests.get(url)
+    content = req.content
+    f = open('data\monthly_{}.csv'.format(symbol), 'wb')
+    f.write(content)
+    f.close()
+    return
 
 
 # Economic Indicators
-def get_treasury_yield(apikey):
+def real_gdp(apikey):
     """
-    Downloads the daily US treasurey yield for 10 year bonds
+    Gets the the quarterly real gdp
     params: apikey (str)
-    returns: dataframe
+    returns: None
     """
-    url = 'https://www.alphavantage.co/query?function=TREASURY_YIELD&interval=daily&maturity=10year&apikey={}'.format(apikey)
-    r = requests.get(url)
-    data = r.json()
-    data = data["data"]
-    data = {item["date"] : item["value"] for item in data}
+    url = "https://www.alphavantage.co/query?function=REAL_GDP&interval=quarterly&datatype=csv&apikey={}".format(apikey)
+    req = requests.get(url)
+    content = req.content
+    f = open('data\gdp.csv', 'wb')
+    f.write(content)
+    f.close()
+    return
 
-    df = pd.DataFrame.from_dict(data, orient="index").sort_index(axis=1)
-    df = df.rename(columns={0: 'Treasury Rate'})
-    df = df.head(1000)
-    df.to_csv("treasury_yield.csv")
-    return df
-
-
-def get_fed_fund(apikey):
+def treasury_yield(apikey):
     """
-    Downloads the daily federal funds rate of the United States
+    Gets the daily treasury yield for 10 year bonds
     params: apikey (str)
-    returns: dataframe
+    returns: None
     """
-    url = 'https://www.alphavantage.co/query?function=FEDERAL_FUNDS_RATE&interval=daily&apikey={}'.format(apikey)
-    r = requests.get(url)
-    data = r.json()
-    data = data["data"]
-    data = {item["date"] : item["value"] for item in data}
+    url = "https://www.alphavantage.co/query?function=TREASURY_YIELD&interval=daily&datatype=csv&apikey={}".format(apikey)
+    req = requests.get(url)
+    content = req.content
+    f = open('data\\treasury.csv', 'wb')
+    f.write(content)
+    f.close()
+    return
 
-    df = pd.DataFrame.from_dict(data, orient="index").sort_index(axis=1)
-    df = df.rename(columns={0: 'Federal Fund Rate'})
-    df = df.head(1000)
-    df.to_csv("fed_fund.csv")
-    return df
+def federal_funds_rate(apikey):
+    """
+    Gets the daily federal funds rate
+    params: apikey (str)
+    returns: None
+    """
+    url = "https://www.alphavantage.co/query?function=FEDERAL_FUNDS_RATE&interval=daily&datatype=csv&apikey={}".format(apikey)
+    req = requests.get(url)
+    content = req.content
+    f = open('data\\federal.csv', 'wb')
+    f.write(content)
+    f.close()
+    return
+
+def cpi(apikey):
+    """
+    Gets the monthly consumer price index
+    params: apikey (str)
+    returns: None
+    """
+    url = "https://www.alphavantage.co/query?function=CPI&interval=monthly&datatype=csv&apikey={}".format(apikey)
+    req = requests.get(url)
+    content = req.content
+    f = open('data\cpi.csv', 'wb')
+    f.write(content)
+    f.close()
+    return
+
+def inflation(apikey):
+    """
+    Gets the annual inflation rate
+    params: apikey (str)
+    returns: None
+    """
+    url = "https://www.alphavantage.co/query?function=INFLATION&datatype=csv&apikey={}".format(apikey)
+    req = requests.get(url)
+    content = req.content
+    f = open('data\inflation.csv', 'wb')
+    f.write(content)
+    f.close()
+    return
+
+def unemployment(apikey):
+    """
+    Gets the monthly unemployment rate 
+    params: apikey (str)
+    returns: None
+    """
+    url = "https://www.alphavantage.co/query?function=UNEMPLOYMENT&datatype=csv&apikey={}".format(apikey)
+    req = requests.get(url)
+    content = req.content
+    f = open('data\\unemployment.csv', 'wb')
+    f.write(content)
+    f.close()
+    return
 
 
 # Technical Indicators
-def get_SMA(apikey, symbol="BTC", time_period=50):
+def sma(apikey, symbol):
     """
-    Downloads the daily simple moving average (SMA) values for Bitcoin in USD. Since SMA is considered to react relatively
-    slow in price changes, we use the time period of 50 days. Additionally, since SMA is usually calculated using closing prices
-    we set the series type parameter to close.
-    params: apikey (str), symbol (str), time_period (positive int)
-    returns dataframe
+    Gets the simple moving average (SMA) values for given stock
+    params: apikey (str), symbol (str)
+    returns: None
     """
-    url = 'https://www.alphavantage.co/query?function=SMA&symbol={}USD&interval=daily&time_period={}&series_type=close&apikey={}'.format(symbol, time_period, apikey)
-    r = requests.get(url)
-    data = r.json()
+    url = "https://www.alphavantage.co/query?function=SMA&symbol={}&interval=daily&time_period=10&series_type=open&datatype=csv&apikey={}".format(symbol, apikey)
+    req = requests.get(url)
+    content = req.content
+    f = open('data\sma_{}.csv'.format(symbol), 'wb')
+    f.write(content)
+    f.close()
+    return
 
-    df = pd.DataFrame.from_dict(data['Technical Analysis: SMA'], orient="index").sort_index(ascending=False)
-    df.to_csv("sma.csv")
-    return df
-
-
-def get_EMA(apikey, symbol="BTC", time_period=20):
+def ema(apikey, symbol):
     """
-    Downloads the daily exponential moving average (EMA) values for Bitcoin in USD. Since SMA is considered to be a shorter indicator, we use the time period of 20 days.
-    Additionally, since SMA is usually calculated using closing prices we also use closing prices for the EMA series type parameter.
-    params: apikey (str), symbol (str), time_period (positive int)
-    returns dataframe
+    Gets the exponential moving average (SMA) values for given stock
+    params: apikey (str), symbol (str)
+    returns: None
     """
-    url = 'https://www.alphavantage.co/query?function=EMA&symbol={}USD&interval=daily&time_period={}&series_type=close&apikey={}'.format(symbol, time_period, apikey)
-    r = requests.get(url)
-    data = r.json()
+    url = "https://www.alphavantage.co/query?function=EMA&symbol={}&interval=daily&time_period=10&series_type=open&datatype=csv&apikey={}".format(symbol, apikey)
+    req = requests.get(url)
+    content = req.content
+    f = open('data\ema_{}.csv'.format(symbol), 'wb')
+    f.write(content)
+    f.close()
+    return
 
-    df = pd.DataFrame.from_dict(data['Technical Analysis: EMA'], orient="index").sort_index(ascending=False)
-    df.to_csv("ema.csv")
-    return df
-
-
-def get_RSI(apikey, symbol="BTC", time_period=14):
+def stoch(apikey, symbol):
     """
-    Downloads the daily relative strength index (RSI) values for Bitcoin. Popular value for time period of the 
-    indicator is 14 which we set as the default value
-    params: apikey (str), symbol (str), time_period (positive int) 
-    returns dataframe
+    Gets the stochastic oscillator (STOCH) values for given stock
+    params: apikey (str), symbol (str)
+    returns: None
     """
-    url = 'https://www.alphavantage.co/query?function=RSI&symbol={}USD&interval=daily&time_period={}&series_type=close&apikey={}'.format(symbol, time_period, apikey)
-    r = requests.get(url)
-    data = r.json()
+    url = "https://www.alphavantage.co/query?function=STOCH&symbol={}&interval=daily&time_period=10&series_type=open&datatype=csv&apikey={}".format(symbol, apikey)
+    req = requests.get(url)
+    content = req.content
+    f = open('data\stoch_{}.csv'.format(symbol), 'wb')
+    f.write(content)
+    f.close()
+    return
 
-    df = pd.DataFrame.from_dict(data["Technical Analysis: RSI"], orient="index").sort_index(ascending=False)
-    df.to_csv("rsi.csv")
-    return df
-
-
-def get_BBANDS(apikey, symbol="BTC", time_period=20, nbdevup=2, nbdevdn=2, matype=0):
+def rsi(apikey, symbol):
     """
-    Downloads the daily Bollinger Bands values for Bitcoin. Here we use the standard Bollinger Band formula where we
-    set the centerline as a 20 day simple moving average (SMA) and use a 2x multiplier for the upper and lower bands.
-    Hence, time_period is 20, nbdevup and nbdevdn are both 2, and matype is 0 where 0 signifies SMA. Check alpha vantage
-    documentation for more information.
-    params: apikey (str), symbol (str), time_period (positive int), nbdevup(positive int)
-            nbdevdn (postive int), matype (int [0,8])
-    returns: df
+    Gets the relative strength index (RSI) values for given stock
+    params: apikey (str), symbol (str)
+    returns: None
     """
-    url = 'https://www.alphavantage.co/query?function=BBANDS&symbol={}USD&interval=daily&time_period=20&series_type=close&nbdevup={}&nbdevdn={}&matype={}&apikey={}'.format(symbol, time_period, nbdevup, nbdevdn, matype, apikey)
-    r = requests.get(url)
-    data = r.json()
+    url = "https://www.alphavantage.co/query?function=RSI&symbol={}&interval=daily&time_period=10&series_type=open&datatype=csv&apikey={}".format(symbol, apikey)
+    req = requests.get(url)
+    content = req.content
+    f = open('data\\rsi_{}.csv'.format(symbol), 'wb')
+    f.write(content)
+    f.close()
+    return
 
-    df = pd.DataFrame.from_dict(data["Technical Analysis: BBANDS"], orient="index").sort_index(axis=1)
-    df.to_csv("bbands.csv")
-    return df
-
-
-def get_MACD(apikey, symbol="BTC", fastperiod=12, slowperiod=26, signalperiod=9):
+def adx(apikey, symbol):
     """
-    Downloads the moving average convergence / divergence (MACD) values. The MACD represents a trend
-    following indicator that highlights the short-term price momentum and whether it follows the direction
-    of the long-term price momentum or if a trend is near. The indicator uses the difference between
-    a slow period EMA and fast period EMA which is popularly set to 12 and 26, respectively. Likewise, 
-    there is a signal line which is generally defined by a 9 period EMA. 
-    params: apikey (str), symbol (str), fastperiod (positive int), slowperiod (positive int), signalperiod (positive int)
-    returns: dataframe
+    Gets the average directional movement index (ADX) values for given stock
+    params: apikey (str), symbol (str)
+    returns: None
     """
-    url = 'https://www.alphavantage.co/query?function=MACD&symbol={}USD&interval=daily&series_type=close&fastperiod={}&slowperiod{}&signalperiod={}&apikey={}'.format(symbol, fastperiod, slowperiod, signalperiod, apikey)
-    r = requests.get(url)
-    data = r.json()
+    url = "https://www.alphavantage.co/query?function=ADX&symbol={}&interval=daily&time_period=10&datatype=csv&apikey={}".format(symbol, apikey)
+    req = requests.get(url)
+    content = req.content
+    f = open('data\\adx_{}.csv'.format(symbol), 'wb')
+    f.write(content)
+    f.close()
+    return
 
-    df = pd.DataFrame.from_dict(data["Technical Analysis: MACD"], orient="index").sort_index(axis=1)
-    df.to_csv("macd.csv")
-    return df
-
-
-def get_STOCH(apikey, symbol="BTC", fastkperiod=14, slowkperiod=3, slowdperiod=3, slowkmatype=0, slowdmatype=0):
+def cci(apikey, symbol):
     """
-    Downloads the daily stochastic oscillator (STOCH) values. The indicator shows momentum by comparing the 
-    closing price with a range of its prices over a certain period of time. Generally uses simple moving average
-    hence the default values of slowkmatype and slowdmatype. Additional parameters are the fastkperiod, 
-    slowkperiod, and slowdperiod which are commonly set to 14 for the fast parameter and 3 for the slow parameters.
-    params: apikey (str), symbol (str), fastperiod (positive int), slowkperiod (positive int), slowdperiod (positive int),
-            slowkmatype (int [0,8]) slowdmatype (int [0,8])
-    returns: dataframe
+    Gets the commodity channel index (CCI) values for given stock
+    params: apikey (str), symbol (str)
+    returns: None
     """
-    url = 'https://www.alphavantage.co/query?function=STOCH&symbol={}USD&interval=daily&fastkperiod={}&slowkperiod={}&slowdperiod={}&slowkmatype={}&slowdmatype={}&apikey={}'.format(symbol, fastkperiod, slowkperiod, slowdperiod, slowkmatype, slowdmatype, apikey)
-    r = requests.get(url)
-    data = r.json()
+    url = "https://www.alphavantage.co/query?function=CCI&symbol={}&interval=daily&time_period=10&datatype=csv&apikey={}".format(symbol, apikey)
+    req = requests.get(url)
+    content = req.content
+    f = open('data\cci_{}.csv'.format(symbol), 'wb')
+    f.write(content)
+    f.close()
+    return
 
-    df = pd.DataFrame.from_dict(data["Technical Analysis: STOCH"], orient="index").sort_index(axis=1)
-    df.to_csv("stoch.csv")
-    return df
+def ad(apikey, symbol):
+    """
+    Gets the Chaikin A/D (AD) line values for given stock
+    params: apikey (str), symbol (str)
+    returns: None
+    """
+    url = "https://www.alphavantage.co/query?function=AD&symbol={}&interval=daily&time_period=10&datatype=csv&apikey={}".format(symbol, apikey)
+    req = requests.get(url)
+    content = req.content
+    f = open('data\\ad_{}.csv'.format(symbol), 'wb')
+    f.write(content)
+    f.close()
+    return
+
+def obv(apikey, symbol):
+    """
+    Gets the on balance value (OBV) line values for given stock
+    params: apikey (str), symbol (str)
+    returns: None
+    """
+    url = "https://www.alphavantage.co/query?function=AD&symbol={}&interval=daily&time_period=10&datatype=csv&apikey={}".format(symbol, apikey)
+    req = requests.get(url)
+    content = req.content
+    f = open('data\obv_{}.csv'.format(symbol), 'wb')
+    f.write(content)
+    f.close()
+    return
 
 
 def get_data(apikey):
@@ -177,26 +258,184 @@ def get_data(apikey):
     limit. Then we merge the data into a single dataframe using outer union logic which we write to the current 
     directory as csv file
     params: apikey (str)
-    returns: dataframe
+    returns: None
     """
-    exchange_rates = get_exchange_rates(apikey)
-    sma = get_SMA(apikey)
-    ema = get_EMA(apikey)
-    rsi = get_RSI(apikey)
-    bbands = get_BBANDS(apikey)
-    time.sleep(60) # Wait a minute before using the API again
-    macd = get_MACD(apikey)
-    stoch = get_STOCH(apikey)
-    fed = get_fed_fund(apikey)
+    symbols = ["AAPL", "MSFT", "TSLA", "AMZN", "GOOG"]
+    time_series = [time_series_daily, time_series_weekly, time_series_monthly]
+    fundamental = []
+    economic = [real_gdp, treasury_yield, federal_funds_rate, cpi, inflation, unemployment]
+    technical = [sma, ema, stoch, rsi, adx, cci, ad, obv]
 
-    datasets = [exchange_rates, sma, ema, rsi, bbands, macd, stoch, fed]
-    data = pd.concat(datasets, axis=1)
-    data = data[::-1]
-    data = data.dropna(axis=0)
-    data.to_csv("data.csv")
-    return data
+    for symbol in symbols:
+        count = 1
+        for f in time_series:
+            if count == 5:
+                time.sleep(60)
+                count = 1
+            else:
+                f(apikey, symbol)
+                count += 1
+        
+        for f in economic:
+            if count == 5:
+                time.sleep(60)
+                count = 1
+            else:
+                f(apikey)
+                count += 1
+        
+        for f in technical:
+            if count == 5:
+                time.sleep(60)
+                count = 1
+            else:
+                f(apikey, symbol)
+                count += 1
+    return
 
+
+def date2int(string):
+    """
+    Utility function that converts a string "YYYY-MM-DD" into an integer YYYYMMDD
+    params: string (str)
+    returns: output (int)
+    """
+    output = [i for i in string if i.isdigit()]
+    output = "".join(output)
+    output = int(output)
+    return output
+
+
+def apple_df():
+    """
+    Cleans up and formats a dataframe corresponding to relevant data for Apple
+    params: None
+    return: DataFrame
+    """
+    daily = pd.read_csv("data/aapl/daily_AAPL.csv")
+    daily.rename({'timestamp':'time'}, axis=1, inplace=True)
+    ad = pd.read_csv("data/aapl/ad_AAPL.csv")
+    adx = pd.read_csv("data/aapl/adx_AAPL.csv")
+    ema = pd.read_csv("data/aapl/ema_AAPL.csv")
+    obv = pd.read_csv("data/aapl/obv_AAPL.csv")
+    rsi = pd.read_csv("data/aapl/rsi_AAPL.csv")
+    stoch = pd.read_csv("data/aapl/stoch_AAPL.csv")
+
+    dframes = [daily, ad, adx, ema, obv, rsi, stoch]
+    df = functools.reduce(lambda  left,right: pd.merge(left,right,on=['time'], how='outer'), dframes)
+
+    df.dropna(inplace=True)
+    df["time"] = df["time"].apply(date2int)
+    return df
+
+
+def googl_df():
+    """
+    Cleans up and formats a dataframe corresponding to relevant data for Google (Alphabet)
+    params: None
+    return: DataFrame
+    """
+    daily = pd.read_csv("data/google/daily_GOOG.csv")
+    daily.rename({'timestamp':'time'}, axis=1, inplace=True)
+    ad = pd.read_csv("data/google/ad_GOOG.csv")
+    adx = pd.read_csv("data/google/adx_GOOG.csv")
+    ema = pd.read_csv("data/google/ema_GOOG.csv")
+    obv = pd.read_csv("data/google/obv_GOOG.csv")
+    rsi = pd.read_csv("data/google/rsi_GOOG.csv")
+    stoch = pd.read_csv("data/google/stoch_GOOG.csv")
+
+    dframes = [daily, ad, adx, ema, obv, rsi, stoch]
+    df = functools.reduce(lambda  left,right: pd.merge(left,right,on=['time'], how='outer'), dframes)
+
+    df.dropna(inplace=True)
+    df["time"] = df["time"].apply(date2int)
+    return df
+
+
+def amzn_df():
+    """
+    Cleans up and formats a dataframe corresponding to relevant data for Amazon
+    params: None
+    return: DataFrame
+    """
+    daily = pd.read_csv("data/amzn/daily_AMZN.csv")
+    daily.rename({'timestamp':'time'}, axis=1, inplace=True)
+    ad = pd.read_csv("data/amzn/ad_AMZN.csv")
+    adx = pd.read_csv("data/amzn/adx_AMZN.csv")
+    ema = pd.read_csv("data/amzn/ema_AMZN.csv")
+    obv = pd.read_csv("data/amzn/obv_AMZN.csv")
+    rsi = pd.read_csv("data/amzn/rsi_AMZN.csv")
+    stoch = pd.read_csv("data/amzn/stoch_AMZN.csv")
+
+    dframes = [daily, ad, adx, ema, obv, rsi, stoch]
+    df = functools.reduce(lambda  left,right: pd.merge(left,right,on=['time'], how='outer'), dframes)
+
+    df.dropna(inplace=True)
+    df["time"] = df["time"].apply(date2int)
+    return df
+
+
+def msft_df():
+    """
+    Cleans up and formats a dataframe corresponding to relevant data for Microsoft
+    params: None
+    return: DataFrame
+    """
+    daily = pd.read_csv("data/msft/daily_MSFT.csv")
+    daily.rename({'timestamp':'time'}, axis=1, inplace=True)
+    ad = pd.read_csv("data/msft/ad_MSFT.csv")
+    adx = pd.read_csv("data/msft/adx_MSFT.csv")
+    ema = pd.read_csv("data/msft/ema_MSFT.csv")
+    obv = pd.read_csv("data/msft/obv_MSFT.csv")
+    rsi = pd.read_csv("data/msft/rsi_MSFT.csv")
+    stoch = pd.read_csv("data/msft/stoch_MSFT.csv")
+
+    dframes = [daily, ad, adx, ema, obv, rsi, stoch]
+    df = functools.reduce(lambda  left,right: pd.merge(left,right,on=['time'], how='outer'), dframes)
+
+    df.dropna(inplace=True)
+    df["time"] = df["time"].apply(date2int)
+    return df
+
+
+def tsla_df():
+    """
+    Cleans up and formats a dataframe corresponding to relevant data for Tesla
+    params: None
+    return: DataFrame
+    """
+    daily = pd.read_csv("data/tsla/daily_TSLA.csv")
+    daily.rename({'timestamp':'time'}, axis=1, inplace=True)
+    ad = pd.read_csv("data/tsla/ad_TSLA.csv")
+    adx = pd.read_csv("data/tsla/adx_TSLA.csv")
+    ema = pd.read_csv("data/tsla/ema_TSLA.csv")
+    obv = pd.read_csv("data/tsla/obv_TSLA.csv")
+    rsi = pd.read_csv("data/tsla/rsi_TSLA.csv")
+    stoch = pd.read_csv("data/tsla/stoch_TSLA.csv")
+
+    dframes = [daily, ad, adx, ema, obv, rsi, stoch]
+    df = functools.reduce(lambda  left,right: pd.merge(left,right,on=['time'], how='outer'), dframes)
+
+    df.dropna(inplace=True)
+    df["time"] = df["time"].apply(date2int)
+    return df
+
+
+def merge_data():
+    """
+    Merges the data into appropriate multidimensional array for neural network training and saves
+    them using pickle
+    params: None
+    returns: None
+    """
+    apple = apple_df().to_numpy()
+    amzn = amzn_df().to_numpy()
+    msft = msft_df().to_numpy()
+    tensor = np.stack((apple, amzn, msft))
+    np.save("data/tensor.npy", tensor)
+    return
 
 if __name__ == "__main__":
     apikey = "S8YIUGVLMYAG3S4E"
-    data = get_data(apikey)
+    get_data(apikey)
+    merge_data()
