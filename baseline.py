@@ -24,7 +24,7 @@ def predict(arr):
     """
     for i in range(3):
         mu = arr[i]
-        sigma = 0.2 * mu
+        sigma = 0.1 * mu
         arr[i] = random.gauss(mu, sigma)
 
     return arr
@@ -101,36 +101,51 @@ def createPlots():
     axs[0].plot(x, yhat[0], label="Predictions")
     axs[0].plot(x, y[0], label="Observed", color="darkorange")
     axs[0].legend(loc=2)
-    axs[0].title.set_text("Predicted vs Observed Open Prices for Apple")
+    axs[0].title.set_text("Predicted vs Observed Open Prices for Apple (Random Walk)")
+    axs[0].set_ylabel("Price (USD)")
+    axs[0].grid(True)
 
     e = residuals(y[0], yhat[0])
     axs[1].plot(x, e, color="g", label="Residuals")
     axs[1].legend(loc=2)
-    axs[1].title.set_text("Residuals for Apple's Predictions")
+    axs[1].title.set_text("Residuals for Apple's Predictions (Random Walk)")
+    axs[1].set_xlabel("Time")
+    axs[1].set_ylabel("Price (USD)")
+    axs[1].grid(True)
     
     # Amazon
     fig, axs = plt.subplots(2, figsize=(15,8))
     axs[0].plot(x, yhat[1], label="Predictions")
     axs[0].plot(x, y[1], label="Observed", color="darkorange")
     axs[0].legend(loc=2)
-    axs[0].title.set_text("Predicted vs Observed Open Prices for Amazon")
+    axs[0].title.set_text("Predicted vs Observed Open Prices for Amazon (Random Walk)")
+    axs[0].set_ylabel("Price (USD)")
+    axs[0].grid(True)
 
     e = residuals(y[1], yhat[1])
     axs[1].plot(x, e, color="g", label="Residuals")
     axs[1].legend(loc=2)
-    axs[1].title.set_text("Residuals for Amazon's Predictions")
+    axs[1].title.set_text("Residuals for Amazon's Predictions (Random Walk)")
+    axs[1].set_xlabel("Time")
+    axs[1].set_ylabel("Price (USD)")
+    axs[1].grid(True)
 
     # Microsoft
     fig, axs = plt.subplots(2, figsize=(15,8))
     axs[0].plot(x, yhat[2], label="Predictions")
     axs[0].plot(x, y[2], label="Observed", color="darkorange")
     axs[0].legend(loc=2)
-    axs[0].title.set_text("Predicted vs Observed Open Prices for Microsoft")
+    axs[0].title.set_text("Predicted vs Observed Open Prices for Microsoft (Random Walk)")
+    axs[0].set_ylabel("Price (USD)")
+    axs[0].grid(True)
 
     e = residuals(y[2], yhat[2])
     axs[1].plot(x, e, color="g", label="Residuals")
     axs[1].legend(loc=2)
-    axs[1].title.set_text("Residuals for Microsoft's Predictions")
+    axs[1].title.set_text("Residuals for Microsoft's Predictions (Random Walk)")
+    axs[1].set_xlabel("Time")
+    axs[1].set_ylabel("Price (USD)")
+    axs[1].grid(True)
     plt.show()
 
 
