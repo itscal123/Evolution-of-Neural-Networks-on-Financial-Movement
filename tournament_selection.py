@@ -496,24 +496,23 @@ if __name__ == "__main__":
     X_train, X_test, Y_train, Y_test = prepareData()
 
     # Conduct tournament selection
-    #generateData()
+    generateData()
 
-    #model = keras.models.load_model("models\iteration_5")
+    model = keras.models.load_model("models\iteration_5")
 
     # Retrain the best model
-    #callback = keras.callbacks.EarlyStopping(monitor="loss", min_delta=15, patience=8, restore_best_weights=True)
-    #history = model.fit(X_train, Y_train, epochs=25, batch_size=8, callbacks=[callback], shuffle=False)
+    callback = keras.callbacks.EarlyStopping(monitor="loss", min_delta=15, patience=8, restore_best_weights=True)
+    history = model.fit(X_train, Y_train, epochs=25, batch_size=8, callbacks=[callback], shuffle=False)
 
     # Save the final model
-    #model.save("models\\best")
+    model.save("models\\best")
 
     # Load the final model
     model = keras.models.load_model("models\\best")
 
     # Model summary
-    #model.summary
 
     # Create plots
     createPlots(model, X_train, Y_train)
     createValPlots(model, X_test, Y_test)
-    #summaryStats()
+    summaryStats()
