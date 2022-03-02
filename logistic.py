@@ -3,7 +3,7 @@ import random
 from matplotlib import pyplot as plt
 from datetime import datetime
 import pandas as pd
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.linear_model import LogisticRegression
 
 
 
@@ -128,18 +128,19 @@ def movement(y, yhat):
 
 
 def createModel(X, y):
-    model = RandomForestRegressor(n_jobs=-1)
+    model = LogisticRegression(n_jobs=-1)
     model.fit(X, y)
     return model
 
 
 def preprocessData(data):
     X, Y = offset(data)
+    Y = [0 if Y[i] > Y[i-1] else 1 for i in range(1, len(Y))]
     return trainTestSplit(X, Y)
 
 
 def trainTestSplit(X, Y):
-    X_train, X_test = X[:-20,:], X[-20:,:]
+    X_train, X_test = X[:-21,:], X[-21:-1,:]
     Y_train, Y_test = Y[:-20], Y[-20:]
     return X_train, X_test, Y_train, Y_test
 
@@ -151,11 +152,10 @@ def offset(data):
 
 
 if __name__ == "__main__":
-    """
     data = getData()
     stacked_data = []
     apple_data, amazon_data, microsoft_data = data[0], data[1], data[2]
-    f = open("experiments\\random_forest.txt", "w")
+    f = open("experiments\\logistic.txt", "w")
     for _ in range(30):
         accuracy = []
         for dataset in [apple_data, amazon_data, microsoft_data]:
@@ -168,22 +168,10 @@ if __name__ == "__main__":
 
             # Test data
             yhat = model.predict(X_test)
-
-            fig, axs = plt.subplots(2, figsize=(15,8))
-            axs[0].plot(x[-20:], yhat, label="Predictions")
-            axs[0].plot(x[-20:], y_test, label="Observed", color="darkorange")
-            axs[0].legend(loc=2)
-            axs[0].title.set_text("Predicted vs Observed Open Prices for Apple")
-
-            e = residuals(y_test, yhat)
-            axs[1].plot(x[-20:], e, color="g", label="Residuals")
-            axs[1].legend(loc=2)
-            axs[1].title.set_text("Residuals for Apple's Predictions")
             accuracy.append(movement(y_test, yhat))
 
             accuracy.append(movement(y_test, yhat))
         f.write(str(sum(accuracy) / 3) + ",")
         
-    """
-    df = pd.read_csv("experiments\\random_forest.txt", header=None).T
+    df = pd.read_csv("experiments\\logistic.txt", header=None).T
     print(df.describe())

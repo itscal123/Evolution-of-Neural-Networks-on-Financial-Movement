@@ -92,16 +92,24 @@ def createPlots():
     returns: None 
     """
     data = getData()
-    x = [float2date(day) for day in data[0,:,0]]
-    yhat = predictions(getData())
-    y = observed(getData())
-
+    x = [float2date(day) for day in data[0,::-1,0]]
+    yhat = predictions(getData())[:, ::-1]
+    y = observed(getData())[:, ::-1]
+    split = x.index(datetime(2014, 7, 8))
+    last = x.index(datetime(2014, 6, 9))
     # Apple
+    for i in range(len(x)):
+        if i >= last and i < split:
+            y[0][i] += 500
+            yhat[0][i] += 500
+        if i >= split:
+            y[0][i] *= 7
+            yhat[0][i] *= 7
     fig, axs = plt.subplots(2, figsize=(15,8))
-    axs[0].plot(x, yhat[0], label="Predictions")
-    axs[0].plot(x, y[0], label="Observed", color="darkorange")
+    axs[0].plot(x, yhat[0][::], label="Predictions")
+    axs[0].plot(x, y[0][::], label="Observed", color="darkorange")
     axs[0].legend(loc=2)
-    axs[0].title.set_text("Predicted vs Observed Open Prices for Apple (Random Walk)")
+    axs[0].title.set_text("Predicted vs Observed Open Split Adjusted Prices for Apple (Random Walk)")
     axs[0].set_ylabel("Price (USD)")
     axs[0].grid(True)
 
@@ -199,7 +207,22 @@ def summaryStats():
     print(df.describe())
 
 
+def mae():
+    yhat = predictions(getData())
+    y = observed(getData())
+
+    apple = [abs(i) for i in residuals(y[0], yhat[0])]
+    amazon = [abs(i) for i in residuals(y[1], yhat[1])]
+    microsoft = [abs(i) for i in residuals(y[2], yhat[2])]
+
+    apple = sum(apple) / len(apple)
+    amazon = sum(amazon) / len(amazon)
+    microsoft = sum(microsoft) / len(microsoft)
+
+    return apple + amazon + microsoft
+
 if __name__ == "__main__":
     createPlots()
     #generateData()
     #summaryStats()
+    #print(mae())

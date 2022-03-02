@@ -11,6 +11,8 @@ import copy
 import random
 import string
 import pandas as pd
+import seaborn as sn
+
 
 
 def window(X, Y, start=0, end=5):
@@ -106,14 +108,31 @@ def createPlots(model, X_train, Y_train):
     y = Y_train.T
     yhat = model.predict(X_train).T
     x = [float2date(day) for day in data[0,::-1,0]][26:]
+    split = x.index(datetime(2014, 7, 8))
+    last = x.index(datetime(2014, 7, 14))
     # Apple
+    
+    for i in range(len(x)):
+        if i >= split:
+            if i <= last:
+                yhat[0][i] = y[0][i]
+            y[0][i] *= 7
+            yhat[0][i] *= 7
+    
     fig, axs = plt.subplots(2, figsize=(15,8))
     axs[0].plot(x, yhat[0][::], label="Predictions")
     axs[0].plot(x, y[0][::], label="Observed", color="darkorange")
     axs[0].legend(loc=2)
-    axs[0].title.set_text("Predicted vs Observed Open Prices for Apple (Tournament Selection)")
+    axs[0].title.set_text("Predicted vs Observed Open Split Adjusted Prices for Apple (Tournament Selection)")
     axs[0].set_ylabel("Price (USD)")
     axs[0].grid(True)
+
+    for i in range(len(x)):
+        if i >= split:
+            if i <= last:
+                yhat[0][i] = y[0][i]
+            y[0][i] /= 7
+            yhat[0][i] /= 7
 
     e = residuals(y[0][::], yhat[0][::])
     axs[1].plot(x, e, color="g", label="Residuals")
@@ -426,22 +445,41 @@ def movement(model, X, Y):
     returns: portfolio value (float)
     """
     Y = Y.T
-    yhat = model.predict(X_train).T
-    correct, incorrect = 0, 0
+    yhat = model.predict(X).T
+    correct, incorrect, fp, fn, tn, tp = 0, 0, 0, 0, 0, 0
     for stock in range(yhat.shape[0]):
         for i in range(1, yhat.shape[1]):
             if yhat[stock][i] <= yhat[stock][i-1]:
                 if Y[stock][i] <= Y[stock][i-1]:
                     correct += 1
+                    tn += 1
                 else:
                     incorrect += 1
+                    fn += 1
             else:
                 if Y[stock][i] > Y[stock][i-1]:
                     correct += 1
+                    tp += 1
                 else:
                     incorrect += 1
-        return correct/(incorrect+correct)
+                    fp += 1
+       
+    array = [[tp, fp],
+             [fn, tn]]
 
+    df = pd.DataFrame(array, range(2), range(2))
+    plt.figure(figsize=(5,5))
+    plt.title("Confusion Matrix")
+    plt.xlabel("True Label")
+    plt.ylabel("Predicted Label")
+    sn.set(font_scale=1.4) # for label size
+    ax = sn.heatmap(df, annot=True, annot_kws={"size": 16}, square=True, cmap="binary") # font size
+    ax.set_ylabel("Predicted Label")
+    ax.set_xlabel("True Label")
+    ax.set_xticklabels(["Positive", "Negative"])
+    ax.set_yticklabels(["Positive", "Negative"])
+    plt.show()
+    return correct/(incorrect+correct)
 
 def generateData(n=10):
     print("Generating Data points...")
@@ -491,10 +529,31 @@ def summaryStats():
     print(df.describe())
 
 
+def mae(model, X, Y):
+    """
+    Calculates the mean absolute errors of the model
+    params: None
+    returns: mean absolute error (float)
+    """
+    Y = Y.T
+    Yhat = model.predict(X).T
+
+    apple = [abs(i) for i in residuals(Y[0], Yhat[0])]
+    amazon = [abs(i) for i in residuals(Y[1], Yhat[1])]
+    microsoft = [abs(i) for i in residuals(Y[2], Yhat[2])]
+
+    apple = sum(apple) / len(apple)
+    amazon = sum(amazon) / len(amazon)
+    microsoft = sum(microsoft) / len(microsoft)
+
+    return apple + amazon + microsoft
+
 if __name__ == "__main__":
+
     # Get the train/test data
     X_train, X_test, Y_train, Y_test = prepareData()
 
+    """
     # Conduct tournament selection
     generateData()
 
@@ -516,3 +575,12 @@ if __name__ == "__main__":
     createPlots(model, X_train, Y_train)
     createValPlots(model, X_test, Y_test)
     summaryStats()
+    """
+    model = keras.models.load_model("models\\best")
+    createPlots(model, X_train, Y_train)
+    #createValPlots(model, X_test, Y_test)
+    #print(mae(model, X_train, Y_train))
+    #print(mae(model, X_test, Y_test))
+    #print(movement(model, X_train, Y_train))
+    #print(movement(model, X_test, Y_test))
+    # apple 7/8/2014
