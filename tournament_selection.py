@@ -577,10 +577,9 @@ if __name__ == "__main__":
     summaryStats()
     """
     model = keras.models.load_model("models\\best")
-    createPlots(model, X_train, Y_train)
+    #createPlots(model, X_train, Y_train)
     #createValPlots(model, X_test, Y_test)
     #print(mae(model, X_train, Y_train))
     #print(mae(model, X_test, Y_test))
     #print(movement(model, X_train, Y_train))
-    #print(movement(model, X_test, Y_test))
-    # apple 7/8/2014
+    print(movement(model, X_test, Y_test))

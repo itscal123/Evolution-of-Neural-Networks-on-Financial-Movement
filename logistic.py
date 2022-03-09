@@ -168,7 +168,6 @@ if __name__ == "__main__":
 
             # Test data
             yhat = model.predict(X_test)
-            accuracy.append(movement(y_test, yhat))
 
             accuracy.append(movement(y_test, yhat))
         f.write(str(sum(accuracy) / 3) + ",")
